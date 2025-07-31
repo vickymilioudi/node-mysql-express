@@ -15,10 +15,11 @@ export async function getStudentByIdQuery(id) {
 
 export async function findStudentQuery(id, firstName, lastName) {
   const [rows] = await pool.query(
-    "CALL FindStudent(?, ?, ?)",
+    `SELECT * FROM student
+     WHERE id = ? OR firstName = ? OR lastName = ?`,
     [id || '', firstName || '', lastName || '']
   );
-  return rows[0];
+  return rows;
 }
 
 export async function createStudentByIdQuery(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) {

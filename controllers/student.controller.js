@@ -14,7 +14,7 @@ export async function getAllStudents(req, res) {
 
 // * Get a Student By Id
 export async function getStudentById(req, res) {
-  const { id } = req.params;
+  const { id } = req.params.id;
   try {
     const student = await getStudentByIdQuery(req.params.id);
     if (!student) {
@@ -27,10 +27,16 @@ export async function getStudentById(req, res) {
   }
 };
 
-// * Find a Student by Id OR firstName OR lastName
+// * Find a Student by Id OR firstName OR lastNameS
 export async function findStudent(req, res) {
   try {
-    const { id, firstName, lastName } = req.body;
+    const { id, firstName, lastName } = req.query;
+    if (!id && !firstName && !lastName) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one search parameter: id, firstName or lastName."
+      });
+    }
     const students = await findStudentQuery(id, firstName, lastName);
     if (students.length === 0) {
       return res.status(404).json({ success: false, message: "No matching students found." });
@@ -41,6 +47,7 @@ export async function findStudent(req, res) {
     res.status(500).json({ success: false, message: "Server error. Please try again later." });
   }
 };
+
 
 // * Create A New Student By Id
 export async function createStudentById(req, res) {

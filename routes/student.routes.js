@@ -4,8 +4,8 @@ import { getAllStudents, getStudentById, findStudent, createStudentById, updateS
 const router = express.Router();
 
 router.get("/", getAllStudents);
+router.get("/search", findStudent);
 router.get("/:id", getStudentById);
-router.post("/search", findStudent);
 router.post("/", createStudentById);
 router.patch("/:id", updateStudentEmailById);
 router.delete("/:id", deleteStudentById);
