@@ -1,4 +1,4 @@
-import { getAllStudentsQuery, getStudentQuery, createStudentQuery, deleteStudentQuery, deleteAllStudentsQuery } from "../services/student.service.js";
+import { getAllStudentsQuery, getStudentByIdQuery, findStudentQuery, createStudentByIdQuery, updateStudentEmailByIdQuery, deleteStudentByIdQuery, deleteAllStudentsQuery } from "../services/student.service.js";
 
 // * Get All Students
 export async function getAllStudents(req, res) {
@@ -11,11 +11,12 @@ export async function getAllStudents(req, res) {
   }
 };
 
-// * Get a Student
-export async function getStudent(req, res) {
+
+// * Get a Student By Id
+export async function getStudentById(req, res) {
   const { id } = req.params;
   try {
-    const student = await getStudentQuery(req.params.id);
+    const student = await getStudentByIdQuery(req.params.id);
     if (!student) {
       return res.status(404).json({ success: false, message: `Student with id ${id} not found`});
     }
@@ -26,11 +27,26 @@ export async function getStudent(req, res) {
   }
 };
 
-// * Create A New Student
-export async function createStudent(req, res) {
+// * Find a Student by Id OR firstName OR lastName
+export async function findStudent(req, res) {
+  try {
+    const { id, firstName, lastName } = req.body;
+    const students = await findStudentQuery(id, firstName, lastName);
+    if (students.length === 0) {
+      return res.status(404).json({ success: false, message: "No matching students found." });
+    }
+    res.status(200).json({ success: true, data: students });
+  } catch (error) {
+    console.error("Error finding students:", error.message);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
+};
+
+// * Create A New Student By Id
+export async function createStudentById(req, res) {
   try {
     const { id, firstName, lastName, email, password, enrollmentDate, dateOfBirth } = req.body;
-    const student = await createStudentQuery(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
+    const student = await createStudentByIdQuery(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
     res.status(201).json({ success: true, data: student });
   } catch (error) {
     console.error("Error creating student:", error.message);
@@ -38,15 +54,35 @@ export async function createStudent(req, res) {
   }
 };
 
-// TODO Update a Student
+// * Update Student Email By Id
+export async function updateStudentEmailById(req, res) {
+  const { id } = req.params;
+  const { email } = req.body;
+
+  try {
+    const result = await updateStudentEmailByIdQuery(id, email);
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Invalid email address." });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: `Student with id ${id} not found.` });
+    }
+
+    res.status(200).json({ success: true, message: `Email updated successfully for student ${id}.` });
+  } catch (error) {
+    console.error("Error updating email:", error.message);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
+};
 
 
-// * Delete A Student
-export async function deleteStudent(req, res) {
+// * Delete A Student By Id
+export async function deleteStudentById(req, res) {
   const { id } = req.params;
 
   try {
-    const result = await deleteStudentQuery(id);
+    const result = await deleteStudentByIdQuery(id);
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
