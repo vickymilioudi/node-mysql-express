@@ -1,6 +1,6 @@
 import { pool } from "../config/database.connection.js";
 
-export async function getAllStudentsQuery() {
+export async function getAllStudents() {
   const [rows] = await pool.query(`
     SELECT * 
     FROM student, course, attends
@@ -8,12 +8,12 @@ export async function getAllStudentsQuery() {
   return rows;
 };
 
-export async function getStudentByIdQuery(id) {
+export async function getStudentById(id) {
   const [rows] = await pool.query("SELECT * FROM student WHERE id = ?", [id]);
   return rows[0];
 };
 
-export async function findStudentQuery(id, firstName, lastName) {
+export async function findStudent(id, firstName, lastName) {
   const [rows] = await pool.query(
     `SELECT * FROM student
      WHERE id = ? OR firstName = ? OR lastName = ?`,
@@ -22,7 +22,7 @@ export async function findStudentQuery(id, firstName, lastName) {
   return rows;
 }
 
-export async function createStudentByIdQuery(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) {
+export async function createStudentById(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) {
   const [result] = await pool.query(`
     INSERT INTO student (id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) 
     VALUES (?, ?, ?, ?, ?, ?, ?)`, 
@@ -30,7 +30,7 @@ export async function createStudentByIdQuery(id, firstName, lastName, email, pas
   return getStudentByIdQuery(id);
 };
 
-export async function updateStudentEmailByIdQuery(id, email) {
+export async function updateStudentEmailById(id, email) {
   const [result] = await pool.query(`
     UPDATE student 
     SET email = ? 
@@ -40,7 +40,7 @@ export async function updateStudentEmailByIdQuery(id, email) {
   return result;
 }
 
-export async function deleteStudentByIdQuery(id) {
+export async function deleteStudentById(id) {
   const [result] = await pool.query(`
     DELETE 
     FROM student 
@@ -49,8 +49,20 @@ export async function deleteStudentByIdQuery(id) {
   return result;
 }
 
-export async function deleteAllStudentsQuery() {
+export async function deleteAllStudents() {
   const [result] = await pool.query("DELETE FROM student");
   return result;
 }
 
+export async function getStudentsByCourse(courseID) {
+  const [rows] = await pool.query(`
+    SELECT 
+       COUNT(a.id) AS totalStudents,
+       GROUP_CONCAT(CONCAT(s.firstName, ' ', s.lastName) SEPARATOR ', ') AS studentNames
+     FROM attends a JOIN student s 
+          ON a.studentID = s.id
+     WHERE a.courseID = ?`,
+    [courseID]
+  );
+  return rows[0]; 
+}

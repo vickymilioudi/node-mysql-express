@@ -1,9 +1,12 @@
-import { getAllStudentsQuery, getStudentByIdQuery, findStudentQuery, createStudentByIdQuery, updateStudentEmailByIdQuery, deleteStudentByIdQuery, deleteAllStudentsQuery } from "../services/student.service.js";
+import { getAllStudents, getStudentById, 
+         findStudent, createStudentById, 
+         updateStudentEmailById, deleteStudentById, 
+         deleteAllStudents, getStudentsByCourse} from "../services/student.service.js";
 
 // * Get All Students
-export async function getAllStudents(req, res) {
+export async function getAllStudentsController(req, res) {
   try {
-    const students = await getAllStudentsQuery();
+    const students = await getAllStudents();
     res.status(200).json({ success: true, data: students });
   } catch (error) {
     console.error("Error fetching students:", error.message);
@@ -11,12 +14,11 @@ export async function getAllStudents(req, res) {
   }
 };
 
-
 // * Get a Student By Id
-export async function getStudentById(req, res) {
+export async function getStudentByIdController(req, res) {
   const { id } = req.params.id;
   try {
-    const student = await getStudentByIdQuery(req.params.id);
+    const student = await getStudentById(req.params.id);
     if (!student) {
       return res.status(404).json({ success: false, message: `Student with id ${id} not found`});
     }
@@ -27,8 +29,29 @@ export async function getStudentById(req, res) {
   }
 };
 
-// * Find a Student by Id OR firstName OR lastNameS
-export async function findStudent(req, res) {
+// * Get Students By Course
+export async function getStudentsByCourseController(req, res) {
+  try {
+    const { courseID } = req.params;
+    const result = await getStudentsByCourse(courseID);
+    if (!courseID) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide courseID in the URL params."
+      });
+    }
+    if (result.totalStudents === 0) {
+      return res.status(404).json({ success: false, message: `No students found for courseID ${courseID}.`});
+    }
+    res.status(200).json({ success: true, data: result});
+  } catch (error) {
+    console.error("Error fetching students by course:", error.message);
+    res.status(500).json({ success: false, message: "Server error. Please try again later."});
+  }
+};
+
+// * Find a Student by Id OR firstName OR lastName
+export async function findStudentController(req, res) {
   try {
     const { id, firstName, lastName } = req.query;
     if (!id && !firstName && !lastName) {
@@ -37,7 +60,7 @@ export async function findStudent(req, res) {
         message: "Please provide at least one search parameter: id, firstName or lastName."
       });
     }
-    const students = await findStudentQuery(id, firstName, lastName);
+    const students = await findStudent(id, firstName, lastName);
     if (students.length === 0) {
       return res.status(404).json({ success: false, message: "No matching students found." });
     }
@@ -48,12 +71,11 @@ export async function findStudent(req, res) {
   }
 };
 
-
 // * Create A New Student By Id
-export async function createStudentById(req, res) {
+export async function createStudentByIdController(req, res) {
   try {
     const { id, firstName, lastName, email, password, enrollmentDate, dateOfBirth } = req.body;
-    const student = await createStudentByIdQuery(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
+    const student = await createStudentById(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
     res.status(201).json({ success: true, data: student });
   } catch (error) {
     console.error("Error creating student:", error.message);
@@ -62,12 +84,12 @@ export async function createStudentById(req, res) {
 };
 
 // * Update Student Email By Id
-export async function updateStudentEmailById(req, res) {
+export async function updateStudentEmailByIdController(req, res) {
   const { id } = req.params;
   const { email } = req.body;
 
   try {
-    const result = await updateStudentEmailByIdQuery(id, email);
+    const result = await updateStudentEmailById(id, email);
 
     if (!email) {
       return res.status(400).json({ success: false, message: "Invalid email address." });
@@ -83,13 +105,12 @@ export async function updateStudentEmailById(req, res) {
   }
 };
 
-
 // * Delete A Student By Id
-export async function deleteStudentById(req, res) {
+export async function deleteStudentByIdController(req, res) {
   const { id } = req.params;
 
   try {
-    const result = await deleteStudentByIdQuery(id);
+    const result = await deleteStudentById(id);
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
@@ -98,15 +119,15 @@ export async function deleteStudentById(req, res) {
     console.error("Error creating student:", error.message);
     res.status(500).json({ success: false, message: "Server error. Please try again later." });
   }
-}
+};
 
 // * Delete All Student
-export async function deleteAllStudents(req, res, next) {
+export async function deleteAllStudentsController(req, res, next) {
   try {
-    const result = await deleteAllStudentsQuery();
+    const result = await deleteAllStudents();
     res.status(200).json({ success: true, message: `${result.affectedRows} students deleted successfully.` });
   } catch (error) {
     console.error("Error creating student:", error.message);
     res.status(500).json({ success: false, message: "Server error. Please try again later." });
   }
-}
+};
