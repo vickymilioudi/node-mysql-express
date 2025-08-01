@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { getAllStudents, getStudentById, 
          findStudent, createStudentById, 
          updateStudentEmailById, deleteStudentById, 
@@ -81,7 +82,7 @@ export async function findStudentController(req, res) {
 // * Create A New Student By Id
 export async function createStudentByIdController(req, res) {
   const { id, firstName, lastName, email, password, enrollmentDate, dateOfBirth } = req.body;
-  if (!id || isNaN(Number(id)) || !firstName || !lastName || !email || !password) {
+  if (!id || !firstName || !lastName || !email || !password) {
     return res.status(400).json({ success: false, message: "Missing or invalid required fields." });
   }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,7 +96,9 @@ export async function createStudentByIdController(req, res) {
     return res.status(400).json({ success: false, message: "Invalid dateOfBirth format." });
   }
   try {
-    const student = await createStudentById(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
+    const saltRounds = 13;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const student = await createStudentById(id, firstName, lastName, email, hashedPassword, enrollmentDate, dateOfBirth);
     res.status(201).json({ success: true, data: student });
   } catch (error) {
     console.error("Error creating student:", error.message);

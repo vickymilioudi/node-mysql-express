@@ -22,12 +22,12 @@ export async function findStudent(id, firstName, lastName) {
   return rows;
 }
 
-export async function createStudentById(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) {
+export async function createStudentById(id, firstName, lastName, email, hashedPassword, enrollmentDate, dateOfBirth) {
   const [result] = await pool.query(`
     INSERT INTO student (id, firstName, lastName, email, password, enrollmentDate, dateOfBirth) 
     VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-      [id, firstName, lastName, email, password, enrollmentDate, dateOfBirth]);
-  return getStudentByIdQuery(id);
+      [id, firstName, lastName, email, hashedPassword, enrollmentDate, dateOfBirth]);
+  return getStudentById(id);
 };
 
 export async function updateStudentEmailById(id, email) {
