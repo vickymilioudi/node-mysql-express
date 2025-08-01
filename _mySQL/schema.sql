@@ -49,7 +49,7 @@ CREATE TABLE course (
 
 ---------- # 4 create attends table [RELATIONSHIP: student - course] ----------
 CREATE TABLE attends (
-    id VARCHAR(50) NOT NULL UNIQUE,
+    id INT NOT NULL UNIQUE AUTO_INCREMENT,
     studentID VARCHAR(50) NOT NULL,
     courseID VARCHAR(50) NOT NULL,
     grade DECIMAL(4,2) DEFAULT NULL,
