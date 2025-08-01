@@ -2,9 +2,21 @@ import { pool } from "../config/database.connection.js";
 
 export async function getAllStudents() {
   const [rows] = await pool.query(`
-    SELECT * 
-    FROM student, course, attends
-    ORDER BY lastName`);
+    SELECT 
+      s.id AS studentID,
+      s.firstName,
+      s.lastName,
+      s.email,
+      s.enrollmentDate,
+      s.dateOfBirth,
+      GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS courses,
+      GROUP_CONCAT(DISTINCT a.grade ORDER BY c.name SEPARATOR ', ') AS grades
+    FROM student s
+    LEFT JOIN attends a ON s.id = a.studentID
+    LEFT JOIN course c ON a.courseID = c.id
+    GROUP BY s.id, s.firstName, s.lastName, s.email, s.enrollmentDate, s.dateOfBirth
+    ORDER BY s.lastName;
+  `);
   return rows;
 };
 
@@ -20,7 +32,7 @@ export async function findStudent(id, firstName, lastName) {
     [id || '', firstName || '', lastName || '']
   );
   return rows;
-}
+};
 
 export async function createStudentById(id, firstName, lastName, email, hashedPassword, enrollmentDate, dateOfBirth) {
   const [result] = await pool.query(`
@@ -38,7 +50,7 @@ export async function updateStudentEmailById(id, email) {
       [email, id]
   );
   return result;
-}
+};
 
 export async function deleteStudentById(id) {
   const [result] = await pool.query(`
@@ -47,12 +59,12 @@ export async function deleteStudentById(id) {
     WHERE id = ?`,
      [id]);
   return result;
-}
+};
 
 export async function deleteAllStudents() {
   const [result] = await pool.query("DELETE FROM student");
   return result;
-}
+};
 
 export async function getStudentsByCourse(courseID) {
   const [rows] = await pool.query(`
@@ -65,9 +77,9 @@ export async function getStudentsByCourse(courseID) {
     [courseID]
   );
   return rows[0]; 
-}
+};
 
 export async function getCourseById(id) {
   const [rows] = await pool.query("SELECT * FROM course WHERE id = ?", [id]);
   return rows[0];
-}
+};
