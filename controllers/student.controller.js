@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { getAllStudents, getStudentById, 
          findStudent, createStudentById, 
          updateStudentEmailById, deleteStudentById, 
-         deleteAllStudents, getStudentsByCourse, getCourseById} from "../services/student.service.js";
+         deleteAllStudents, getStudentsByCourse, getCourseById, createAttend} from "../services/student.service.js";
 
 // * Get All Students
 export async function getAllStudentsController(req, res) {
@@ -105,6 +105,36 @@ export async function createStudentByIdController(req, res) {
     res.status(500).json({ success: false, message: "Server error. Please try again later." });
   }
 };
+
+// * Enroll a Student in a Course by Student ID (Insert into attends)
+export async function createAttendController(req, res) {
+  const { id } = req.params;
+  const { courseID, grade } = req.body;
+  try {
+    if (!id || !courseID) {
+      return res.status(400).json({ success: false, message: "studentID and courseID are required." });
+    }
+    
+    const student = await getStudentById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: `Student with id ${id} not found.` });
+    }
+    const course = await getCourseById(courseID);
+    if (!course) {
+      return res.status(404).json({ success: false, message: `Course with id ${courseID} not found.` });
+    }
+
+    const result = await createAttend(id, courseID, grade);
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ success: false, message: "Failed to enroll student in course." });
+    }
+    res.status(201).json({ success: true, message: `Course ${courseID} successfully assigned to student.`, data: result });
+  } catch (error) {
+    console.error("Error creating attend:", error.message);
+    res.status(500).json({ success: false, message: "Server error. Please try again later." });
+  }
+};
+
 
 // * Update Student Email By Id
 export async function updateStudentEmailByIdController(req, res) {

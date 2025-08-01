@@ -42,6 +42,15 @@ export async function createStudentById(id, firstName, lastName, email, hashedPa
   return getStudentById(id);
 };
 
+export async function createAttend(studentID, courseID, grade) {
+  const [result] = await pool.query(
+    `INSERT INTO attends (studentID, courseID, grade)
+     VALUES (?, ?, ?)`,
+    [studentID, courseID, grade]
+  );
+  return getStudentById(studentID);
+};
+
 export async function updateStudentEmailById(id, email) {
   const [result] = await pool.query(`
     UPDATE student 

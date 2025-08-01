@@ -1,7 +1,7 @@
 import express from "express";
 import { getAllStudentsController, getStudentByIdController, findStudentController,
          createStudentByIdController, updateStudentEmailByIdController, deleteStudentByIdController, 
-         deleteAllStudentsController, getStudentsByCourseController} 
+         deleteAllStudentsController, getStudentsByCourseController, createAttendController} 
 from "../controllers/student.controller.js";
 
 const router = express.Router();
@@ -9,8 +9,12 @@ const router = express.Router();
 router.get("/", getAllStudentsController);
 router.get("/search", findStudentController);
 router.get("/:id", getStudentByIdController);
+
 router.post("/", createStudentByIdController);
+router.post("/:id", createAttendController);
+
 router.patch("/:id", updateStudentEmailByIdController);
+
 router.delete("/:id", deleteStudentByIdController);
 router.delete("/", deleteAllStudentsController);
 
