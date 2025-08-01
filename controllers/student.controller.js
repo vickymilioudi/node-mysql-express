@@ -1,7 +1,7 @@
 import { getAllStudents, getStudentById, 
          findStudent, createStudentById, 
          updateStudentEmailById, deleteStudentById, 
-         deleteAllStudents, getStudentsByCourse} from "../services/student.service.js";
+         deleteAllStudents, getStudentsByCourse, getCourseById} from "../services/student.service.js";
 
 // * Get All Students
 export async function getAllStudentsController(req, res) {
@@ -40,6 +40,13 @@ export async function getStudentsByCourseController(req, res) {
         message: "Please provide courseID in the URL params."
       });
     }
+    const exists = await getCourseById(courseID);
+    if (!exists) {
+      return res.status(404).json({
+        success: false,
+        message: `Course with id ${courseID} does not exist.`
+      });
+    }
     if (result.totalStudents === 0) {
       return res.status(404).json({ success: false, message: `No students found for courseID ${courseID}.`});
     }
@@ -73,8 +80,21 @@ export async function findStudentController(req, res) {
 
 // * Create A New Student By Id
 export async function createStudentByIdController(req, res) {
+  const { id, firstName, lastName, email, password, enrollmentDate, dateOfBirth } = req.body;
+  if (!id || isNaN(Number(id)) || !firstName || !lastName || !email || !password) {
+    return res.status(400).json({ success: false, message: "Missing or invalid required fields." });
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: "Invalid email format." });
+  }
+  if (enrollmentDate && isNaN(Date.parse(enrollmentDate))) {
+    return res.status(400).json({ success: false, message: "Invalid enrollmentDate format." });
+  }
+  if (dateOfBirth && isNaN(Date.parse(dateOfBirth))) {
+    return res.status(400).json({ success: false, message: "Invalid dateOfBirth format." });
+  }
   try {
-    const { id, firstName, lastName, email, password, enrollmentDate, dateOfBirth } = req.body;
     const student = await createStudentById(id, firstName, lastName, email, password, enrollmentDate, dateOfBirth);
     res.status(201).json({ success: true, data: student });
   } catch (error) {
@@ -88,16 +108,32 @@ export async function updateStudentEmailByIdController(req, res) {
   const { id } = req.params;
   const { email } = req.body;
 
-  try {
-    const result = await updateStudentEmailById(id, email);
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Invalid or missing student id." });
+  }
 
-    if (!email) {
+  if (!email) {
       return res.status(400).json({ success: false, message: "Invalid email address." });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: "Invalid email format." });
+  }
+
+  try {
+    const student = await getStudentById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: `Student with id ${id} not found.` });
     }
+    if (student.email === email) {
+      return res.status(400).json({ success: false, message: "New email is the same as the current email." });
+    }
+    
+    const result = await updateStudentEmailById(id, email); 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: `Student with id ${id} not found.` });
     }
-
     res.status(200).json({ success: true, message: `Email updated successfully for student ${id}.` });
   } catch (error) {
     console.error("Error updating email:", error.message);
@@ -108,6 +144,9 @@ export async function updateStudentEmailByIdController(req, res) {
 // * Delete A Student By Id
 export async function deleteStudentByIdController(req, res) {
   const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Invalid or missing student id." });
+  }
 
   try {
     const result = await deleteStudentById(id);
